@@ -5,8 +5,7 @@ use std::str::FromStr;
 use std::ops::AddAssign;
 
 fn main() {
-    let mut t = term::stdout().unwrap();
-    writeln!(t, "Welcome!").unwrap();
+    println!("Welcome!").unwrap();
     let mut progress = Progress {
         limits: vec![0.5, 0.8, 1.0],
         progress: 0.0
@@ -23,31 +22,31 @@ fn main() {
         Action {
             name: String::from("Eat"),
             need: Need::Hunger(0.0),
-            influence: 0.2,
+            influence: 0.3,
             progress_influence: 0.0,
         },
         Action {
             name: String::from("Sleep"),
             need: Need::Sleep(0.0),
-            influence: 0.2,
+            influence: 0.3,
             progress_influence: 0.0,
         },
         Action {
             name: String::from("Coffee"),
             need: Need::Sleep(0.0),
-            influence: 0.1,
+            influence: 0.25,
             progress_influence: 0.05,
         },
         Action {
             name: String::from("Learn"),
             need: Need::Sleep(0.0),
-            influence: -0.1,
+            influence: -0.05,
             progress_influence: 0.15,
         },
         Action {
             name: String::from("Alcohol"),
-            need: Need::Hunger(0.0),
-            influence: 0.1,
+            need: Need::Fun(0.0),
+            influence: 0.3,
             progress_influence: -0.1,
         },
         Action {
@@ -59,21 +58,20 @@ fn main() {
         Action {
             name: String::from("Play games"),
             need: Need::Fun(0.0),
-            influence: 0.1,
-            progress_influence: -0.1,
+            influence: 0.2,
+            progress_influence: -0.05,
         },
     ];
 
     let mut buf = String::with_capacity(1);
 
     for _ in 0u16..60*3u16 {
-        writeln!(t, "{}", state);
-        writeln!(t, "What do you want to do?");
+        println!("{}", state);
+        println!("What do you want to do?");
         for (i, action) in actions.iter().enumerate() {
-            writeln!(t, "{}. {}", i, action).unwrap();
+            println!("{}. {}", i, action).unwrap();
         }
         stdin().read_line(&mut buf).expect("WRONG");
-        println!("[{}]", buf);
         let input = usize::from_str(&buf.trim()).expect("WRONG");
         let action = actions.get(input).expect("WRONG");
         action.apply(&mut state);
@@ -89,9 +87,9 @@ fn main() {
         buf.clear();
     }
     if state.progress.progress < state.progress.limits[0] {
-        writeln!(t, "FAILED").unwrap();
+        println!("FAILED").unwrap();
     } else {
-        writeln!(t, "Success").unwrap();
+        println!("Success").unwrap();
     }
 }
 
@@ -140,7 +138,7 @@ impl Display for Need {
         let width = f.width().unwrap_or(16);
         let fill = ((width - 10) as f32 * v) as usize;
         let unfill = (width - 10) - fill;
-        let progress: String = iter::repeat("🟩").take(fill).chain(iter::repeat("⬜").take(unfill)).collect();
+        let progress: String = iter::repeat("=").take(fill).chain(iter::repeat(" ").take(unfill)).collect();
         write!(f, "{}: [{}]", name, progress)
     }
 }
@@ -151,7 +149,7 @@ impl Display for Progress {
         let fill = ((width - 10) as f32 * self.progress) as usize;
         let unfill = (width - 10) - fill;
 
-        let progress: String = iter::repeat("🟩").take(fill).chain(iter::repeat("⬜").take(unfill)).collect();
+        let progress: String = iter::repeat("=").take(fill).chain(iter::repeat(" ").take(unfill)).collect();
         write!(f, "Progress: [{}]", progress)
     }
 }
@@ -189,9 +187,9 @@ impl AddAssign<f32> for Progress {
 impl Action {
     fn apply(&self, state: &mut State) {
         match self.need {
-            Need::Hunger(_) => state.hunger += self.influence,
-            Need::Sleep(_) => state.sleep += self.influence,
-            Need::Fun(_) => state.fun += self.influence
+            Need::Hunger(_) => state.hunger += self.influence + 0.1,
+            Need::Sleep(_) => state.sleep += self.influence + 0.1,
+            Need::Fun(_) => state.fun += self.influence + 0.1
         };
         state.progress += self.progress_influence;
     }
