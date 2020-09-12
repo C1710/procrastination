@@ -1,3 +1,6 @@
+use std::fmt::{Display, Formatter};
+use std::iter;
+
 fn main() {
     let mut t = term::stdout().unwrap();
     writeln!(t, "Welcome!").unwrap();
@@ -16,7 +19,7 @@ fn main() {
 
 
     for t in 0u16..60*3u16 {
-        println!("What do you want to do?")
+        writeln!(t, "What do you want to do?")
     }
 }
 
@@ -43,4 +46,38 @@ enum Need {
 struct Progress {
     limits: Vec<f32>,
     progress: f32
+}
+
+impl Display for State {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::io::Result<()> {
+        for need in (self.hunger, self.fun, self.sleep) {
+            writeln!("{}", need)
+        }
+        writeln!("{}", self.progress);
+        Ok(())
+    }
+}
+
+impl Display for Need {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::io::Result<()> {
+        let (name, v) = match self {
+            Need::Hunger(v) => ("Hunger", v),
+            Need::Sleep(v) =>  (" Sleep", v),
+            Need::Fun(v) =>    ("   Fun", v)
+        };
+        let width = f.width().unwrap_or(16);
+        let fill = ((width - 10) as f32 * v) as usize;
+        let unfill = (width - 10) - fill;
+        write!("{}: [{}]", name, iter::repeat('🟩').take(fill).chain(iter::repeat('⬜').take(unfill)).collect() as String)
+    }
+}
+
+impl Display for Progress {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::io::Result<()> {
+        let width = f.width().unwrap_or(16);
+        let fill = ((width - 10) as f32 * v) as usize;
+        let unfill = (width - 10) - fill;
+
+        write!("Progress: [{}]")
+    }
 }
