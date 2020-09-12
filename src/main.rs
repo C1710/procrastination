@@ -5,8 +5,8 @@ use std::str::FromStr;
 use std::ops::AddAssign;
 
 fn main() {
-    println!("Welcome!").unwrap();
-    let mut progress = Progress {
+    println!("Welcome!");
+    let progress = Progress {
         limits: vec![0.5, 0.8, 1.0],
         progress: 0.0
     };
@@ -69,7 +69,7 @@ fn main() {
         println!("{}", state);
         println!("What do you want to do?");
         for (i, action) in actions.iter().enumerate() {
-            println!("{}. {}", i, action).unwrap();
+            println!("{}. {}", i, action);
         }
         stdin().read_line(&mut buf).expect("WRONG");
         let input = usize::from_str(&buf.trim()).expect("WRONG");
@@ -87,9 +87,9 @@ fn main() {
         buf.clear();
     }
     if state.progress.progress < state.progress.limits[0] {
-        println!("FAILED").unwrap();
+        println!("FAILED");
     } else {
-        println!("Success").unwrap();
+        println!("Success");
     }
 }
 
@@ -121,9 +121,9 @@ struct Progress {
 impl Display for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         for need in vec![&self.hunger, &self.fun, &self.sleep] {
-            writeln!(f, "{}", need);
+            writeln!(f, "{}", need).unwrap();
         }
-        writeln!(f, "{}", self.progress);
+        writeln!(f, "{}", self.progress).unwrap();
         Ok(())
     }
 }

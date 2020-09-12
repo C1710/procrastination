@@ -1,7 +1,8 @@
 [package]
 name = "procrastination"
+description = "A very lazy learning simulation game that was made in about an hour for the Low effort game jam on itch.io"
 version = "0.1.0"
-authors = ["const"]
+authors = ["Constantin A."]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
