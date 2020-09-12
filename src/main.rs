@@ -51,14 +51,20 @@ fn main() {
             progress_influence: -0.1,
         },
         Action {
-            name: String::from("Alcohol"),
-            need: Need::Hunger(0.0),
+            name: String::from("Procrastinate"),
+            need: Need::Fun(0.0),
+            influence: 0.05,
+            progress_influence: -0.1,
+        },
+        Action {
+            name: String::from("Play games"),
+            need: Need::Fun(0.0),
             influence: 0.1,
             progress_influence: -0.1,
         },
     ];
 
-    let mut buf = String::with_capacity(2);
+    let mut buf = String::with_capacity(1);
 
     for _ in 0u16..60*3u16 {
         writeln!(t, "{}", state);
@@ -67,14 +73,22 @@ fn main() {
             writeln!(t, "{}. {}", i, action).unwrap();
         }
         stdin().read_line(&mut buf).expect("WRONG");
-        let input = usize::from_str(&buf).expect("WRONG");
+        println!("[{}]", buf);
+        let input = usize::from_str(&buf.trim()).expect("WRONG");
         let action = actions.get(input).expect("WRONG");
         action.apply(&mut state);
         for need in vec![&mut state.hunger, &mut state.sleep, &mut state.fun] {
             need.add_assign(-0.1);
+            match need {
+                Need::Hunger(f) if *f <= 0.0 => panic!("GAME OVER"),
+                Need::Sleep(f) if *f <= 0.0 => panic!("GAME OVER"),
+                Need::Fun(f) if *f <= 0.0 => panic!("GAME OVER"),
+                _ => {}
+            }
         }
+        buf.clear();
     }
-    if progress.progress < progress.limits[0] {
+    if state.progress.progress < state.progress.limits[0] {
         writeln!(t, "FAILED").unwrap();
     } else {
         writeln!(t, "Success").unwrap();
@@ -108,8 +122,8 @@ struct Progress {
 
 impl Display for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        for need in (&self.hunger, &self.fun, &self.sleep) {
-            writeln!(f, "{}", need)
+        for need in vec![&self.hunger, &self.fun, &self.sleep] {
+            writeln!(f, "{}", need);
         }
         writeln!(f, "{}", self.progress);
         Ok(())
@@ -126,7 +140,8 @@ impl Display for Need {
         let width = f.width().unwrap_or(16);
         let fill = ((width - 10) as f32 * v) as usize;
         let unfill = (width - 10) - fill;
-        write!(f, "{}: [{}]", name, iter::repeat('🟩').take(fill).chain(iter::repeat('⬜').take(unfill)).collect() as String)
+        let progress: String = iter::repeat("🟩").take(fill).chain(iter::repeat("⬜").take(unfill)).collect();
+        write!(f, "{}: [{}]", name, progress)
     }
 }
 
@@ -136,7 +151,8 @@ impl Display for Progress {
         let fill = ((width - 10) as f32 * self.progress) as usize;
         let unfill = (width - 10) - fill;
 
-        write!(f, "Progress: [{}]", iter::repeat('🟩').take(fill).chain(iter::repeat('⬜').take(unfill)).collect() as String)
+        let progress: String = iter::repeat("🟩").take(fill).chain(iter::repeat("⬜").take(unfill)).collect();
+        write!(f, "Progress: [{}]", progress)
     }
 }
 
