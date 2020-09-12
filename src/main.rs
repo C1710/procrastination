@@ -2,6 +2,7 @@ use std::fmt::{Display, Formatter};
 use std::iter;
 use std::io::stdin;
 use std::str::FromStr;
+use std::ops::AddAssign;
 
 fn main() {
     let mut t = term::stdout().unwrap();
@@ -18,27 +19,72 @@ fn main() {
         progress
     };
 
-    let actions: Vec<Action> = vec![];
+    let actions: Vec<Action> = vec![
+        Action {
+            name: String::from("Eat"),
+            need: Need::Hunger(0.0),
+            influence: 0.2,
+            progress_influence: 0.0,
+        },
+        Action {
+            name: String::from("Sleep"),
+            need: Need::Sleep(0.0),
+            influence: 0.2,
+            progress_influence: 0.0,
+        },
+        Action {
+            name: String::from("Coffee"),
+            need: Need::Sleep(0.0),
+            influence: 0.1,
+            progress_influence: 0.05,
+        },
+        Action {
+            name: String::from("Learn"),
+            need: Need::Sleep(0.0),
+            influence: -0.1,
+            progress_influence: 0.15,
+        },
+        Action {
+            name: String::from("Alcohol"),
+            need: Need::Hunger(0.0),
+            influence: 0.1,
+            progress_influence: -0.1,
+        },
+        Action {
+            name: String::from("Alcohol"),
+            need: Need::Hunger(0.0),
+            influence: 0.1,
+            progress_influence: -0.1,
+        },
+    ];
 
     let mut buf = String::with_capacity(2);
 
-    for t in 0u16..60*3u16 {
+    for _ in 0u16..60*3u16 {
         writeln!(t, "{}", state);
         writeln!(t, "What do you want to do?");
         for (i, action) in actions.iter().enumerate() {
-            writeln!(t, "{}. {}", i, action)
+            writeln!(t, "{}. {}", i, action).unwrap();
         }
         stdin().read_line(&mut buf).expect("WRONG");
         let input = usize::from_str(&buf).expect("WRONG");
         let action = actions.get(input).expect("WRONG");
-
+        action.apply(&mut state);
+        for need in vec![&mut state.hunger, &mut state.sleep, &mut state.fun] {
+            need.add_assign(-0.1);
+        }
+    }
+    if progress.progress < progress.limits[0] {
+        writeln!(t, "FAILED").unwrap();
+    } else {
+        writeln!(t, "Success").unwrap();
     }
 }
 
 struct State {
-    hunger: Need::Hunger,
-    sleep: Need::Sleep,
-    fun: Need::Fun,
+    hunger: Need,
+    sleep: Need,
+    fun: Need,
     progress: Progress
 }
 
@@ -62,7 +108,7 @@ struct Progress {
 
 impl Display for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        for need in (self.hunger, self.fun, self.sleep) {
+        for need in (&self.hunger, &self.fun, &self.sleep) {
             writeln!(f, "{}", need)
         }
         writeln!(f, "{}", self.progress);
@@ -87,7 +133,7 @@ impl Display for Need {
 impl Display for Progress {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         let width = f.width().unwrap_or(16);
-        let fill = ((width - 10) as f32 * v) as usize;
+        let fill = ((width - 10) as f32 * self.progress) as usize;
         let unfill = (width - 10) - fill;
 
         write!(f, "Progress: [{}]", iter::repeat('🟩').take(fill).chain(iter::repeat('⬜').take(unfill)).collect() as String)
@@ -100,6 +146,29 @@ impl Display for Action {
     }
 }
 
-impl Action {
+impl AddAssign<f32> for Need {
+    fn add_assign(&mut self, rhs: f32) {
+        match self {
+            Need::Hunger(v) => v.add_assign(rhs),
+            Need::Sleep(v) => v.add_assign(rhs),
+            Need::Fun(v) => v.add_assign(rhs)
+        }
+    }
+}
 
+impl AddAssign<f32> for Progress {
+    fn add_assign(&mut self, rhs: f32) {
+        self.progress += rhs
+    }
+}
+
+impl Action {
+    fn apply(&self, state: &mut State) {
+        match self.need {
+            Need::Hunger(_) => state.hunger += self.influence,
+            Need::Sleep(_) => state.sleep += self.influence,
+            Need::Fun(_) => state.fun += self.influence
+        };
+        state.progress += self.progress_influence;
+    }
 }
