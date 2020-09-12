@@ -1,5 +1,7 @@
 use std::fmt::{Display, Formatter};
 use std::iter;
+use std::io::stdin;
+use std::str::FromStr;
 
 fn main() {
     let mut t = term::stdout().unwrap();
@@ -16,10 +18,20 @@ fn main() {
         progress
     };
 
+    let actions: Vec<Action> = vec![];
 
+    let mut buf = String::with_capacity(2);
 
     for t in 0u16..60*3u16 {
-        writeln!(t, "What do you want to do?")
+        writeln!(t, "{}", state);
+        writeln!(t, "What do you want to do?");
+        for (i, action) in actions.iter().enumerate() {
+            writeln!(t, "{}. {}", i, action)
+        }
+        stdin().read_line(&mut buf).expect("WRONG");
+        let input = usize::from_str(&buf).expect("WRONG");
+        let action = actions.get(input).expect("WRONG");
+
     }
 }
 
@@ -49,17 +61,17 @@ struct Progress {
 }
 
 impl Display for State {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::io::Result<()> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         for need in (self.hunger, self.fun, self.sleep) {
-            writeln!("{}", need)
+            writeln!(f, "{}", need)
         }
-        writeln!("{}", self.progress);
+        writeln!(f, "{}", self.progress);
         Ok(())
     }
 }
 
 impl Display for Need {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::io::Result<()> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         let (name, v) = match self {
             Need::Hunger(v) => ("Hunger", v),
             Need::Sleep(v) =>  (" Sleep", v),
@@ -68,16 +80,26 @@ impl Display for Need {
         let width = f.width().unwrap_or(16);
         let fill = ((width - 10) as f32 * v) as usize;
         let unfill = (width - 10) - fill;
-        write!("{}: [{}]", name, iter::repeat('🟩').take(fill).chain(iter::repeat('⬜').take(unfill)).collect() as String)
+        write!(f, "{}: [{}]", name, iter::repeat('🟩').take(fill).chain(iter::repeat('⬜').take(unfill)).collect() as String)
     }
 }
 
 impl Display for Progress {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::io::Result<()> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         let width = f.width().unwrap_or(16);
         let fill = ((width - 10) as f32 * v) as usize;
         let unfill = (width - 10) - fill;
 
-        write!("Progress: [{}]")
+        write!(f, "Progress: [{}]", iter::repeat('🟩').take(fill).chain(iter::repeat('⬜').take(unfill)).collect() as String)
     }
+}
+
+impl Display for Action {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}: {} {}{} - Progress {}{}", self.name, self.need, self.influence.signum(), self.influence.abs(), self.progress_influence.signum(), self.progress_influence.abs())
+    }
+}
+
+impl Action {
+
 }
