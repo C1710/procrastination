@@ -158,7 +158,15 @@ impl Display for Progress {
 
 impl Display for Action {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}: {} {}{} - Progress {}{}", self.name, self.need, self.influence.signum(), self.influence.abs(), self.progress_influence.signum(), self.progress_influence.abs())
+        write!(f, "{}: {} {}{} - Progress {}{}", self.name, self.need, match self.influence.signum() {
+            1.0 => "+",
+            -1.0 => "-",
+            _ => " "
+        }, self.influence.abs(), match self.progress_influence.signum() {
+            1.0 => "+",
+            -1.0 => "-",
+            _ => " "
+        }, self.progress_influence.abs())
     }
 }
 
